@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Portfolio Updates — File Placement Guide
 
-## Getting Started
+Replace each file in your project at the exact path shown below.
 
-First, run the development server:
+## 📁 File Map
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+| Updated File                     | Replace In Your Project At                        |
+|----------------------------------|---------------------------------------------------|
+| components/Hero.jsx              | src/components/Hero.jsx                           |
+| components/Navbar.jsx            | src/components/Navbar.jsx                         |
+| components/About.jsx             | src/components/About.jsx                          |
+| components/Experience.jsx        | src/components/Experience.jsx                     |
+| components/Education.jsx         | src/components/Education.jsx                      |
+| components/Projects.jsx          | src/components/Projects.jsx                       |
+| components/Contact.jsx           | src/components/Contact.jsx                        |
+| layout.js                        | src/app/layout.js                                 |
+| globals-additions.css            | APPEND to src/app/globals.css (do NOT replace)    |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## ✅ Summary of All Changes Made
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Hero.jsx
+- Button label: "Let's Collaborate" → "Get In Touch"
+- Button label: "Get Resume" → "Download CV"
+- Added scroll indicator animation at bottom of hero section
+- Added `id="home"` to section (was missing, broke scroll spy)
 
-## Learn More
+### Navbar.jsx
+- Added **Resume download button** on desktop nav (red pill, one-click)
+- Added **Download Resume** button in mobile dropdown menu
+- Imported `Download` icon from lucide-react
 
-To learn more about Next.js, take a look at the following resources:
+### About.jsx
+- Replaced "100% Self-Motivated" stat → "30+ Skills Mastered" (real & verifiable)
+- Renamed "Year of Journey" → "Year of Experience"
+- Renamed "Projects Built" → "Projects Shipped"
+- Added "3 Live Products" stat (concrete & checkable)
+- Rewrote paragraph 2 & 3 to show what you bring to employers
+- Info card below image now links to GitHub (with arrow icon)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Experience.jsx
+- "Personal Projects" → "Independent Projects" (more professional)
+- "Self-Learning" type → "Product Development" (focus on output)
+- Tech count: '46+' → '30+' (consistent with Skills page)
+- Bullet points rewritten to be quantified and output-focused
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Education.jsx
+- Tech count: '46+' → '30+' (consistent)
 
-## Deploy on Vercel
+### Projects.jsx
+- Added `role` field to each project ("Full-Stack Developer · Solo Build")
+- Role displayed below project title with user icon
+- Recruiter can now see exactly what you built and your contribution
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Contact.jsx
+- **CRITICAL BUG FIX**: `zHeight: 9999` → `zIndex: 9999` (toast was invisible)
+- Removed broken `--ph` CSS variable on inputs
+- Added `className="contact-form"` for scoped placeholder CSS
+- Input focus state uses border highlight instead of broken variable
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### layout.js
+- Added full `metadata` export (title, description, keywords, OG tags, Twitter card)
+- Improves Google indexing + LinkedIn/Twitter preview when recruiters share your URL
+
+### globals-additions.css
+- Placeholder color fix (global)
+- Input autofill dark mode fix
+- Custom red scrollbar matching brand

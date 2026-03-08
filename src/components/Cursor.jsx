@@ -212,7 +212,7 @@ export default function Cursor() {
           background: #ef4444;
           transform: translate(-50%, -50%);
           pointer-events: none;
-          z-index: 9998;
+          z-index: 9999;
           will-change: transform;
           box-shadow: 0 0 6px rgba(239,68,68,0.6);
         }

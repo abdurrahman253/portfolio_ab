@@ -1,9 +1,8 @@
-"use client";
-
+'use client';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import { Menu, X, Sun, Moon, Mail, Home, User, Zap, FolderOpen, GraduationCap, MessageCircle } from 'lucide-react';
+import { Menu, X, Sun, Moon, Mail, Home, User, Zap, FolderOpen, GraduationCap, MessageCircle, Download } from 'lucide-react';
 import { useLenis } from 'lenis/react';
 import GetInTouchModal from './GetInTouchModal/GetInTouchModal';
 
@@ -17,17 +16,18 @@ const navLinks = [
 ];
 
 const Navbar = () => {
-  const [isOpen, setIsOpen]        = useState(false);
-  const [mounted, setMounted]      = useState(false);
-  const [activeSection, setActive] = useState('home');
-  const [modalOpen, setModalOpen]  = useState(false);
-  const { theme, setTheme }        = useTheme();
-  const lenis                      = useLenis();
-  const dropdownRef                = useRef(null);
+  const [isOpen, setIsOpen]         = useState(false);
+  const [mounted, setMounted]       = useState(false);
+  const [activeSection, setActive]  = useState('home');
+  const [modalOpen, setModalOpen]   = useState(false);
+  const { theme, setTheme }         = useTheme();
+  const lenis                       = useLenis();
+  const dropdownRef                 = useRef(null);
+  const toggleBtnRef                = useRef(null);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // ── Active section tracker ──────────────────────────────────────────────
+  // Scroll spy
   useEffect(() => {
     const handleScroll = () => {
       const ids = navLinks.map(l => l.href.replace('#', ''));
@@ -43,23 +43,23 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ── Close dropdown on outside click/tap ────────────────────────────────
+  // Outside-click (touchend avoids conflict with toggle button)
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
+      const inDropdown  = dropdownRef.current?.contains(e.target);
+      const inToggleBtn = toggleBtnRef.current?.contains(e.target);
+      if (!inDropdown && !inToggleBtn) setIsOpen(false);
     };
-    document.addEventListener('touchstart', handler, { passive: true });
+    document.addEventListener('touchend', handler);
     document.addEventListener('mousedown', handler);
     return () => {
-      document.removeEventListener('touchstart', handler);
+      document.removeEventListener('touchend', handler);
       document.removeEventListener('mousedown', handler);
     };
   }, [isOpen]);
 
-  // ── Lock body scroll when mobile menu is open ───────────────────────────
+  // Body scroll lock when menu open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -72,21 +72,25 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
-  // ✅ 'night' = dark, 'light' = light — DaisyUI theme names
+  const handleResumeDownload = () => {
+    const link = document.createElement('a');
+    link.href = '/resume_pdf/Abdur-Rahman-resume.pdf';
+    link.download = 'Abdur-Rahman-Resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const toggleTheme = () => setTheme(theme === 'night' ? 'light' : 'night');
 
-  // Prevent hydration mismatch
   if (!mounted) return null;
   const isDark = theme === 'night';
 
   return (
     <>
-      {/* ══════════════════════════════════════════
-          HEADER
-      ══════════════════════════════════════════ */}
       <motion.header
         initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0,   opacity: 1 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="fixed top-0 left-0 right-0 z-50 pt-3 pb-2 pointer-events-none"
       >
@@ -111,8 +115,8 @@ const Navbar = () => {
                 <motion.span
                   key={isDark ? 'moon' : 'sun'}
                   initial={{ rotate: -60, opacity: 0, scale: 0.5 }}
-                  animate={{ rotate: 0,   opacity: 1, scale: 1   }}
-                  exit={{   rotate:  60, opacity: 0, scale: 0.5  }}
+                  animate={{ rotate: 0,  opacity: 1, scale: 1   }}
+                  exit={{ rotate: 60,    opacity: 0, scale: 0.5 }}
                   transition={{ duration: 0.22 }}
                 >
                   {isDark ? <Moon size={17} /> : <Sun size={17} />}
@@ -142,13 +146,10 @@ const Navbar = () => {
                   className="relative px-4 py-1.5 rounded-full text-sm font-medium outline-none select-none"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  {/* Active pill background */}
                   {isActive && (
                     <motion.span
                       layoutId="pill-active"
-                      className={`absolute inset-0 rounded-full ${
-                        isDark ? 'bg-red-600/20' : 'bg-red-50'
-                      }`}
+                      className={`absolute inset-0 rounded-full ${isDark ? 'bg-red-600/20' : 'bg-red-50'}`}
                       transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                     />
                   )}
@@ -167,9 +168,26 @@ const Navbar = () => {
           </nav>
 
           {/* ── Right Actions ── */}
-          <div className="pointer-events-auto flex items-center gap-2.5">
+          <div className="pointer-events-auto flex items-center gap-2">
 
-            {/* Desktop CTA — "Get in touch" */}
+            {/* ✅ NEW: Desktop Resume Download Button */}
+            <motion.button
+              onClick={handleResumeDownload}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className={`
+                hidden md:flex items-center gap-2 px-4 py-2 rounded-full
+                text-sm font-medium border shadow-md backdrop-blur-xl transition-all duration-200
+                ${isDark
+                  ? 'bg-red-950/30 border-red-800/40 text-red-400 hover:bg-red-950/50 hover:border-red-500/60'
+                  : 'bg-red-50/70 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300'}
+              `}
+            >
+              <Download size={13} />
+              Resume
+            </motion.button>
+
+            {/* Desktop: Get in touch */}
             <motion.button
               onClick={() => setModalOpen(true)}
               whileHover={{ scale: 1.04 }}
@@ -186,7 +204,7 @@ const Navbar = () => {
               Get in touch
             </motion.button>
 
-            {/* Mobile: Get in touch icon */}
+            {/* Mobile: mail icon */}
             <motion.button
               onClick={() => setModalOpen(true)}
               whileTap={{ scale: 0.9 }}
@@ -202,8 +220,9 @@ const Navbar = () => {
               <Mail size={17} />
             </motion.button>
 
-            {/* Mobile Hamburger */}
+            {/* Mobile: hamburger toggle */}
             <motion.button
+              ref={toggleBtnRef}
               onClick={() => setIsOpen((v) => !v)}
               whileTap={{ scale: 0.9 }}
               aria-label="Toggle menu"
@@ -220,30 +239,26 @@ const Navbar = () => {
                 <motion.span
                   key={isOpen ? 'x' : 'menu'}
                   initial={{ rotate: -45, opacity: 0, scale: 0.7 }}
-                  animate={{ rotate:   0, opacity: 1, scale: 1   }}
-                  exit={{   rotate:  45, opacity: 0, scale: 0.7  }}
+                  animate={{ rotate: 0,   opacity: 1, scale: 1   }}
+                  exit={{ rotate: 45,     opacity: 0, scale: 0.7 }}
                   transition={{ duration: 0.18 }}
                 >
                   {isOpen ? <X size={18} /> : <Menu size={18} />}
                 </motion.span>
               </AnimatePresence>
             </motion.button>
-
           </div>
         </div>
       </motion.header>
 
-      {/* ══════════════════════════════════════════
-          MOBILE DROPDOWN
-      ══════════════════════════════════════════ */}
+      {/* ── Mobile Dropdown ── */}
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Blurred backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{   opacity: 0 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-40 md:hidden"
               style={{
@@ -253,27 +268,19 @@ const Navbar = () => {
               }}
               onClick={() => setIsOpen(false)}
             />
-
-            {/* Dropdown panel */}
             <motion.div
               ref={dropdownRef}
               initial={{ opacity: 0, y: -8, scale: 0.97 }}
-              animate={{ opacity: 1, y:  0, scale: 1    }}
-              exit={{   opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0,  scale: 1    }}
+              exit={{ opacity: 0,    y: -8,  scale: 0.97 }}
               transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
               className={`
                 fixed top-[4.25rem] z-50 md:hidden rounded-2xl border shadow-2xl overflow-hidden
                 mx-4 left-0 right-0
-                ${isDark
-                  ? 'bg-zinc-900/95 border-zinc-800'
-                  : 'bg-white/96 border-zinc-200/80'}
+                ${isDark ? 'bg-zinc-900/95 border-zinc-800' : 'bg-white/96 border-zinc-200/80'}
               `}
-              style={{
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-              }}
+              style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
             >
-              {/* Nav links */}
               <div className="p-2">
                 {navLinks.map((link, i) => {
                   const Icon     = link.icon;
@@ -283,7 +290,7 @@ const Navbar = () => {
                       key={link.name}
                       href={link.href}
                       initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x:  0 }}
+                      animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.035, duration: 0.2 }}
                       onClick={(e) => handleNavClick(e, link.href)}
                       className={`
@@ -299,43 +306,44 @@ const Navbar = () => {
                       `}
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
-                      {/* Icon */}
-                      <span className={`
-                        flex-shrink-0 transition-colors duration-150
-                        ${isActive
-                          ? 'text-red-500'
-                          : isDark ? 'text-zinc-600' : 'text-zinc-400'}
-                      `}>
+                      <span className={`flex-shrink-0 transition-colors duration-150 ${isActive ? 'text-red-500' : isDark ? 'text-zinc-600' : 'text-zinc-400'}`}>
                         <Icon size={18} />
                       </span>
-
                       {link.name}
-
-                      {/* Active dot */}
-                      {isActive && (
-                        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                      )}
+                      {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />}
                     </motion.a>
                   );
                 })}
               </div>
 
-              {/* Divider */}
               <div className={`mx-4 h-px ${isDark ? 'bg-zinc-800' : 'bg-zinc-100'}`} />
 
-              {/* Bottom CTA */}
-              <div className="p-3">
+              {/* Mobile: Resume + Get in touch */}
+              <div className="p-3 flex flex-col gap-2">
                 <motion.button
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.22 }}
-                  onClick={() => { setIsOpen(false); setModalOpen(true); }}
+                  transition={{ delay: 0.2 }}
+                  onClick={() => { setIsOpen(false); handleResumeDownload(); }}
                   className={`
-                    w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl
-                    text-[15px] font-semibold transition-all active:scale-[0.98]
-                    bg-red-600 hover:bg-red-700 text-white border border-red-500/30
-                    shadow-lg shadow-red-900/20
+                    w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl
+                    text-[14px] font-semibold transition-all active:scale-[0.98] border
+                    ${isDark
+                      ? 'bg-red-950/30 border-red-800/40 text-red-400'
+                      : 'bg-red-50 border-red-200 text-red-600'}
                   `}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <Download size={15} />
+                  Download Resume
+                </motion.button>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.24 }}
+                  onClick={() => { setIsOpen(false); setModalOpen(true); }}
+                  className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl text-[15px] font-semibold transition-all active:scale-[0.98] bg-red-600 hover:bg-red-700 text-white border border-red-500/30 shadow-lg shadow-red-900/20"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <Mail size={16} />
@@ -347,7 +355,6 @@ const Navbar = () => {
         )}
       </AnimatePresence>
 
-      {/* ── Modal ── */}
       <GetInTouchModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
